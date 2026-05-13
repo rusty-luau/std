@@ -4,6 +4,15 @@ Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-s
 
 **Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
+## Project Context
+
+**rusty-luau** ports Rust idioms (`Result`, `Option`, `Iter`, etc.) to Luau as a standard-library-style package targeting the [Lute](https://github.com/luau-lang/lute) runtime.
+
+**Toolchain:**
+- **Lute** — Luau standalone runtime (Node.js/Deno-equivalent)
+- **pesde** — Luau package manager
+- **mise** — toolchain manager for the above
+
 ## 1. Think Before Coding
 
 **Don't assume. Don't hide confusion. Surface tradeoffs.**
