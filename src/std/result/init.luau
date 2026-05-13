@@ -3,17 +3,14 @@ local ResultPrototype = table.freeze({
     __index = Result;
 })
 
-export type Ok<T> = setmetatable<{
-    read _ok: true;
+export type Result<T, E> = setmetatable<{
+    read _ok: true | false;
     read _value: T;
-}, typeof(ResultPrototype)>
-
-export type Err<E> = setmetatable<{
-    read _ok: false;
     read _err: E;
 }, typeof(ResultPrototype)>
 
-export type Result<T, E> = Ok<T> | Err<E>
+export type Ok<T> = Result<T, never>
+export type Err<E> = Result<never, E>
 
 --- Checks if the given value is a Result.
 local function is(value: unknown): boolean
@@ -25,6 +22,7 @@ local function ok<T>(value: T): Ok<T>
     return table.freeze(setmetatable({
         _ok = true :: true;
         _value = value;
+        _err = nil :: never;
     }, ResultPrototype))
 end
 
@@ -32,6 +30,7 @@ end
 local function err<E>(err: E): Err<E>
     return table.freeze(setmetatable({
         _ok = false :: false;
+        _value = nil :: never;
         _err = err;
     }, ResultPrototype))
 end
@@ -227,13 +226,13 @@ end
 --- Returns the contained `Ok` value, consuming the `self` value, without checking that the value is not an `Err`.
 --- Calling this method on an `Err` is _undefined behavior_.
 function Result.unwrap_unchecked<T, E>(self: Result<T, E>): T
-    return (self :: Ok<T>)._value
+    return self._value
 end
 
 --- Returns the contained `Err` value, consuming the `self` value, without checking the value is not an `Ok`.
 --- calling this method on an `Ok`. is _undefined behavior_.
 function Result.unwrap_err_unchecked<T, E>(self: Result<T, E>): E
-    return (self :: Err<E>)._err
+    return self._err
 end
 
 --- Class Result
