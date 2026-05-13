@@ -1,5 +1,6 @@
 name = "rusty_luau/std"
 version = "0.0.1"
+description = "Porting Rust's idioms into Luau"
 authors = ["word30210 <wordisnottoto@gmail.com>"]
 repository = "https://github.com/rusty-luau/std"
 license = "MIT"
@@ -7,7 +8,8 @@ includes = [
     "src/**",
     "pesde.toml",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "assets/**"
 ]
 
 [target]
