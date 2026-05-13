@@ -1,0 +1,10 @@
+# pesde packages
+*_packages
+.pesde
+
+# Luau references
+references/
+
+# rbxm files
+*.rbxm
+*.lock.rbxm

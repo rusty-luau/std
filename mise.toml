@@ -1,0 +1,3 @@
+[tools]
+"github:luau-lang/lute" = "latest"
+"github:pesde-pkg/pesde" = "latest"
