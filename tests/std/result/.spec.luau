@@ -33,7 +33,7 @@ test.suite("std.result", function(suite)
 
         asserts.eq(Result.ok(2):is_ok_and(even), true)
         asserts.eq(Result.ok(3):is_ok_and(even), false)
-        asserts.eq((Result.err("e") :: any):is_ok_and(even), false)
+        asserts.eq((Result.err("e")):is_ok_and(even), false)
     end)
 
     suite:case(":is_err_and", function(asserts)
@@ -41,7 +41,7 @@ test.suite("std.result", function(suite)
 
         asserts.eq(Result.err("not_found"):is_err_and(isNotFound), true)
         asserts.eq(Result.err("other"):is_err_and(isNotFound), false)
-        asserts.eq((Result.ok(1) :: Result.Result<number, string>):is_err_and(isNotFound), false)
+        asserts.eq((Result.ok(1)):is_err_and(isNotFound), false)
     end)
 
     suite:case(":map on Ok applies the function", function(asserts)
@@ -52,7 +52,7 @@ test.suite("std.result", function(suite)
     end)
 
     suite:case(":map on Err passes through", function(asserts)
-        local res = (Result.err("e") :: any):map(function(n: number) return n * 10 end)
+        local res = Result.err("e"):map(function(n: number) return n * 10 end)
 
         asserts.eq(res:is_err(), true)
         asserts.eq(res:unwrap_err(), "e")
@@ -62,7 +62,7 @@ test.suite("std.result", function(suite)
         local double = function(n: number) return n * 2 end
 
         asserts.eq(Result.ok(5):map_or(0, double), 10)
-        asserts.eq((Result.err("e") :: any):map_or(0, double), 0)
+        asserts.eq(Result.err("e"):map_or(0, double), 0)
     end)
 
     suite:case(":map_or_else", function(asserts)
@@ -70,11 +70,11 @@ test.suite("std.result", function(suite)
         local double = function(n: number) return n * 2 end
 
         asserts.eq(Result.ok(5):map_or_else(fallback, double), 10)
-        asserts.eq((Result.err("oops") :: any):map_or_else(fallback, double), 4)
+        asserts.eq(Result.err("oops"):map_or_else(fallback, double), 4)
     end)
 
     suite:case(":map_err on Err applies the function", function(asserts)
-        local res = (Result.err("bad") :: Result.Result<number, string>):map_err(function(e) return `wrapped:{e}` end)
+        local res = Result.err("bad"):map_err(function(e) return `wrapped:{e}` end)
 
         asserts.eq(res:is_err(), true)
         asserts.eq(res:unwrap_err(), "wrapped:bad")
@@ -96,7 +96,7 @@ test.suite("std.result", function(suite)
         asserts.eq(returned, original)
 
         seen = nil
-        local errOriginal = Result.err("e") :: Result.Result<number, string>
+        local errOriginal = Result.err("e")
         local errReturned = errOriginal:inspect(function(v) seen = v end)
 
         asserts.eq(seen, nil)
@@ -105,14 +105,14 @@ test.suite("std.result", function(suite)
 
     suite:case(":inspect_err runs the closure only on Err and returns self", function(asserts)
         local seen: string? = nil
-        local original = Result.err("boom") :: Result.Result<number, string>
+        local original = Result.err("boom")
         local returned = original:inspect_err(function(e) seen = e end)
 
         asserts.eq(seen, "boom")
         asserts.eq(returned, original)
 
         seen = nil
-        local okOriginal = Result.ok(1) :: Result.Result<number, string>
+        local okOriginal = Result.ok(1)
         local okReturned = okOriginal:inspect_err(function(e) seen = e end)
 
         asserts.eq(seen, nil)
@@ -125,7 +125,7 @@ test.suite("std.result", function(suite)
 
     suite:case(":expect throws with the given message on Err", function(asserts)
         asserts.throwsWith("boom", function()
-            (Result.err("inner") :: Result.Result<number, string>):expect("boom")
+            Result.err("inner"):expect("boom")
         end)
     end)
 
@@ -135,7 +135,7 @@ test.suite("std.result", function(suite)
 
     suite:case(":unwrap throws with the inner error on Err", function(asserts)
         asserts.throwsWith("inner error", function()
-            (Result.err("inner error") :: Result.Result<number, string>):unwrap()
+            Result.err("inner error"):unwrap()
         end)
     end)
 
@@ -145,7 +145,7 @@ test.suite("std.result", function(suite)
 
     suite:case(":expect_err throws with the given message on Ok", function(asserts)
         asserts.throwsWith("expected err", function()
-            (Result.ok(1) :: Result.Result<number, string>):expect_err("expected err")
+            Result.ok(1):expect_err("expected err")
         end)
     end)
 
@@ -155,16 +155,16 @@ test.suite("std.result", function(suite)
 
     suite:case(":unwrap_err throws with the inner value on Ok", function(asserts)
         asserts.throwsWith("inner value", function()
-            (Result.ok("inner value") :: Result.Result<string, string>):unwrap_err()
+            Result.ok("inner value"):unwrap_err()
         end)
     end)
 
     suite:case(":and_res", function(asserts)
-        local later = Result.ok(99) :: Result.Result<number, string>
+        local later = Result.ok(99)
 
         asserts.eq(Result.ok(1):and_res(later):unwrap(), 99)
 
-        local errSelf = Result.err("first") :: Result.Result<number, string>
+        local errSelf = Result.err("first")
         local andResult = errSelf:and_res(later)
         asserts.eq(andResult:is_err(), true)
         asserts.eq(andResult:unwrap_err(), "first")
@@ -182,16 +182,16 @@ test.suite("std.result", function(suite)
         local errChain = Result.ok(-1):and_then(sqrtOrErr)
         asserts.eq(errChain:unwrap_err(), "negative")
 
-        local passthrough = (Result.err("first") :: any):and_then(sqrtOrErr)
+        local passthrough = Result.err("first"):and_then(sqrtOrErr)
         asserts.eq(passthrough:unwrap_err(), "first")
     end)
 
     suite:case(":or_res", function(asserts)
-        local fallback = Result.ok(99) :: Result.Result<number, string>
+        local fallback = Result.ok(99)
 
         asserts.eq(Result.ok(1):or_res(fallback):unwrap(), 1)
 
-        local errSelf = Result.err("first") :: Result.Result<number, string>
+        local errSelf = Result.err("first")
         asserts.eq(errSelf:or_res(fallback):unwrap(), 99)
     end)
 
@@ -201,10 +201,10 @@ test.suite("std.result", function(suite)
             return Result.err(`fatal:{e}`)
         end
 
-        local errChain = (Result.err("recoverable") :: Result.Result<number, string>):or_else(recover)
+        local errChain = (Result.err("recoverable")):or_else(recover)
         asserts.eq(errChain:unwrap(), 0)
 
-        local errChain2 = (Result.err("bad") :: Result.Result<number, string>):or_else(recover)
+        local errChain2 = (Result.err("bad")):or_else(recover)
         asserts.eq(errChain2:unwrap_err(), "fatal:bad")
 
         local passthrough = Result.ok(7):or_else(recover)
@@ -213,14 +213,14 @@ test.suite("std.result", function(suite)
 
     suite:case(":unwrap_or", function(asserts)
         asserts.eq(Result.ok(1):unwrap_or(99), 1)
-        asserts.eq((Result.err("e") :: Result.Result<number, string>):unwrap_or(99), 99)
+        asserts.eq((Result.err("e")):unwrap_or(99), 99)
     end)
 
     suite:case(":unwrap_or_else", function(asserts)
         local recover = function(e: string) return #e end
 
         asserts.eq(Result.ok(1):unwrap_or_else(recover), 1)
-        asserts.eq((Result.err("hello") :: Result.Result<number, string>):unwrap_or_else(recover), 5)
+        asserts.eq((Result.err("hello")):unwrap_or_else(recover), 5)
     end)
 
     suite:case(":unwrap_unchecked returns the inner value on Ok", function(asserts)
@@ -233,7 +233,7 @@ test.suite("std.result", function(suite)
 
     suite:case("instances are frozen", function(asserts)
         local res = Result.ok(1)
-        asserts.eq(table.isfrozen(res :: any), true)
+        asserts.eq(table.isfrozen(res), true)
     end)
 end)
 
