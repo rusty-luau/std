@@ -3,16 +3,18 @@ local OptionPrototype = table.freeze({
     __index = Option;
 })
 
-export type Some<T> = setmetatable<{
-    read _is_some: true;
+export type Option<T> = setmetatable<{
+    read _is_some: true | false;
     read _value: T;
 }, typeof(OptionPrototype)>
 
-export type None = setmetatable<{
-    read _is_some: false;
-}, typeof(OptionPrototype)>
+export type Some<T> = Option<T>
+export type None<T = never> = Option<T>
 
-export type Option<T> = Some<T> | None
+local NONE: None = table.freeze(setmetatable({
+    _is_some = false :: false;
+    _value = nil :: never;
+}, OptionPrototype))
 
 --- Checks if the given value is an Option.
 local function is(value: unknown): boolean
@@ -29,9 +31,7 @@ end
 
 --- Constructs a new None value.
 local function none(): None
-    return table.freeze(setmetatable({
-        _is_some = false :: false;
-    }, OptionPrototype))
+    return NONE
 end
 
 --- Returns `true` if the option is a `Some` value.
@@ -98,7 +98,7 @@ end
 --- Returns the contained `Some` value, consuming the `self` value, without checking that the value is not `None`.
 --- Calling this method on a `None` value is _undefined behavior_.
 function Option.unwrap_unchecked<T>(self: Option<T>): T
-    return (self :: Some<T>)._value
+    return self._value
 end
 
 --- Maps an `Option<T>` to `Option<U>` by applying a function to a contained `Some` value (if `Some`) or returns `None` (if `None`).
