@@ -37,6 +37,7 @@ This project uses AI agents. We use them only for:
 
 - Writing test cases
 - Authoring and consulting on complex types and type functions
+- Documentation
 - Translation
 
 All output from AI agents goes through additional human review.
