@@ -2,15 +2,16 @@ local test = require("@std/test")
 
 local trait = require("../../../src/std/trait")
 
---- A small trait used across the cases below: one required method (`name`) and
---- one default method (`greeting`) that dispatches through it.
+--- A small trait, defined the convention way: one required method (`name`) and
+--- one default method (`greeting`) that dispatches through it. `greeting`'s
+--- `self` is `GreetFor<Self>` because the body calls a trait method.
 type GreetRequires<Self> = {
     name: (self: Self) -> string;
 }
 
 local greet_defaults = {}
 
-function greet_defaults.greeting<Self>(self: Self & GreetRequires<Self>): string
+function greet_defaults.greeting<Self>(self: GreetFor<Self>): string
     return `Hello, { self:name() }`
 end
 
@@ -31,7 +32,7 @@ test.suite("std.trait", function(suite)
 
     suite:case(".impl copies default methods into the method table", function(asserts)
         local methods = {}
-        function methods.name(self: any): string
+        function methods.name(self: typeof(methods)): string
             return "world"
         end
 
@@ -42,7 +43,7 @@ test.suite("std.trait", function(suite)
 
     suite:case(".impl returns the same method table", function(asserts)
         local methods = {}
-        function methods.name(self: any): string
+        function methods.name(self: typeof(methods)): string
             return "world"
         end
 
@@ -53,31 +54,33 @@ test.suite("std.trait", function(suite)
 
     suite:case(".impl does not overwrite a method the class already defines", function(asserts)
         local methods = {}
-        function methods.name(self: any): string
+        function methods.name(self: typeof(methods)): string
             return "world"
         end
         -- the class defines its own `greeting`, shadowing the trait default
-        function methods.greeting(self: any): string
+        function methods.greeting(self: typeof(methods)): string
             return "custom"
         end
 
         trait.impl<<typeof(methods), GreetRequires<typeof(methods)>>>(methods, Greet)
 
-        asserts.eq((methods :: any).greeting(), "custom")
+        asserts.eq((methods :: any):greeting(), "custom")
     end)
 
     suite:case("a default method dispatches through the implementer's required method", function(asserts)
-        local PersonMethods = {}
+        -- A convention-shaped implementer: a method table whose name doubles as
+        -- the type name, with `__index :: {}` so methods have a single type
+        -- source, and a public type `setmetatable<...> & For<...>`.
+        local Person = {}
+        local PersonPrototype = table.freeze({
+            __index = Person :: {};
+        })
 
-        function PersonMethods.name(self: Person): string
+        function Person.name(self: Person): string
             return self.who
         end
 
-        trait.impl<<typeof(PersonMethods), GreetRequires<Person>>>(PersonMethods, Greet)
-
-        local PersonPrototype = table.freeze({
-            __index = PersonMethods :: {};
-        })
+        trait.impl<<typeof(Person), GreetRequires<Person>>>(Person, Greet)
 
         type Person = setmetatable<{
             read who: string;
