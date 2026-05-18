@@ -24,17 +24,18 @@ local Display = trait.define(display_defaults)
 -- `define` infers `D` from the defaults table; the result is `Trait<D>`.
 local display_trait: trait.Trait<DisplayDefaults> = Display
 
--- An implementer, built the convention way: a method table whose name doubles
--- as the type name, `__index :: {}`, public type
--- `setmetatable<...> & Trait.For<...>`, and a constructor ending in `:: T`.
-local Point = {}
+-- An implementer, built the convention way: own methods kept in a separate
+-- table and merged via `inherent`, trait defaults merged via `impl`, public
+-- type ends with `& Trait.For<...>`.
+local point_methods = {}
+function point_methods.display(self: Point): string
+    return `({ self.x }, { self.y })`
+end
+
+local Point = trait.inherent({}, point_methods)
 local PointPrototype = table.freeze({
     __index = Point :: {};
 })
-
-function Point.display(self: Point): string
-    return `({ self.x }, { self.y })`
-end
 
 trait.impl<<typeof(Point), DisplayRequires<Point>>>(Point, Display)
 
@@ -55,6 +56,11 @@ end
 local origin: Point = new_point(0, 0)
 local _origin_display: string = origin:display()
 origin:print_display()
+
+-- `inherent` returns `C & M`, so own methods are visible on the class table
+-- type-level too (unlike `impl`'s defaults, which surface only via
+-- `& Trait.For<...>` on the public type).
+local _point_display: (self: Point) -> string = Point.display
 
 -- A class missing the required `display` is not assignable to `M & Requires`,
 -- so the `impl` call would be a type error:
