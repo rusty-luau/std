@@ -67,18 +67,58 @@ test.suite("std.trait", function(suite)
         asserts.eq((methods :: any):greeting(), "custom")
     end)
 
+    suite:case(".inherent copies own methods into the class table", function(asserts)
+        local methods = {}
+        function methods.greet(self: typeof(methods)): string
+            return "hi"
+        end
+
+        local class_table = trait.inherent({}, methods)
+
+        asserts.eq(type(class_table.greet), "function")
+    end)
+
+    suite:case(".inherent returns the class table", function(asserts)
+        local methods = {}
+        function methods.greet(self: typeof(methods)): string
+            return "hi"
+        end
+
+        local class_table = {}
+        local returned = trait.inherent(class_table, methods)
+
+        asserts.eq(returned, class_table)
+    end)
+
+    suite:case(".inherent does not overwrite a method the class already defines", function(asserts)
+        local class_table = {}
+        function class_table.greet(self: typeof(class_table)): string
+            return "original"
+        end
+
+        local methods = {}
+        function methods.greet(self: typeof(methods)): string
+            return "new"
+        end
+
+        trait.inherent(class_table, methods)
+
+        asserts.eq((class_table :: any):greet(), "original")
+    end)
+
     suite:case("a default method dispatches through the implementer's required method", function(asserts)
-        -- A convention-shaped implementer: a method table whose name doubles as
-        -- the type name, with `__index :: {}` so methods have a single type
-        -- source, and a public type `setmetatable<...> & For<...>`.
-        local Person = {}
+        -- A convention-shaped implementer: own methods kept in a separate
+        -- table and merged via `inherent`; trait defaults merged via `impl`;
+        -- public type ends with `& Trait.For<...>`.
+        local person_methods = {}
+        function person_methods.name(self: Person): string
+            return self.who
+        end
+
+        local Person = trait.inherent({}, person_methods)
         local PersonPrototype = table.freeze({
             __index = Person :: {};
         })
-
-        function Person.name(self: Person): string
-            return self.who
-        end
 
         trait.impl<<typeof(Person), GreetRequires<Person>>>(Person, Greet)
 
