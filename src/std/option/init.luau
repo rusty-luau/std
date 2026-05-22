@@ -34,6 +34,14 @@ local function none(): None
     return NONE
 end
 
+--- Constructs a new `None` value if the given value is `nil`, Otherwise returns `Some<T>`.
+local function from<T>(value: T?): Some<T> | None
+    return
+        if value ~= nil
+            then some(value)
+            else NONE
+end
+
 --- Returns `true` if the option is a `Some` value.
 function Option.is_some<T>(self: Option<T>): boolean
     return self._is_some
@@ -206,4 +214,5 @@ return {
     is = is;
     some = some;
     none = none;
+    from = from;
 }
