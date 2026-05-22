@@ -35,3 +35,7 @@ local some: Option.Some<number> = do_nothing(some_1)
 local none: Option.None = do_nothing(none_1)
 
 -- do_nothing(1) -- should error
+
+local some_or_none = Option.from(nil)
+-- some = some_or_none -- should error
+-- none = some_or_none -- should error
