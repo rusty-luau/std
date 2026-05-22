@@ -27,6 +27,15 @@ test.suite("std.option", function(suite)
         asserts.eq(Option.is("some"), false)
     end)
 
+    suite:case(".from", function(asserts)
+        asserts.eq(Option.from(1):is_some(), true)
+        asserts.eq(Option.from(1):is_none(), false)
+        asserts.eq(Option.from(nil):is_some(), false)
+        asserts.eq(Option.from(nil):is_none(), true)
+        asserts.eq(Option.is(Option.from(42)), true)
+        asserts.eq(Option.is(Option.from(nil)), true)
+    end)
+
     suite:case(":is_some_and", function(asserts)
         local even = function(n: number) return n % 2 == 0 end
 
